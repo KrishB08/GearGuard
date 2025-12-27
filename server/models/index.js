@@ -16,7 +16,11 @@ const userSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },
+<<<<<<< HEAD
     role: { type: String, enum: ['Admin', 'Manager', 'Worker', 'Technician'], required: true },
+=======
+    role: { type: String, enum: ['Admin', 'Worker', 'Technician', 'Manager'], required: true },
+>>>>>>> f340c55 (Improvised the dashboards)
     avatar_url: String,
     team_id: { type: Schema.Types.ObjectId, ref: 'Team' }
 }, { timestamps: true, toJSON: toJSONConfig });
@@ -29,6 +33,7 @@ const equipmentSchema = new Schema({
     location: String,
     department: String,
     is_scrap: { type: Boolean, default: false },
+    status: { type: String, enum: ['Active', 'Pending Approval', 'Scrap'], default: 'Active' },
     maintenance_team_id: { type: Schema.Types.ObjectId, ref: 'Team' },
     technician_id: { type: Schema.Types.ObjectId, ref: 'User' },
     assigned_employee_id: { type: Schema.Types.ObjectId, ref: 'User' }
@@ -41,6 +46,7 @@ const maintenanceRequestSchema = new Schema({
     duration: Number,
     priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
     status: { type: String, enum: ['New', 'In Progress', 'Repaired', 'Scrap'], default: 'New' },
+    notes: String,
     equipment_id: { type: Schema.Types.ObjectId, ref: 'Equipment' },
     team_id: { type: Schema.Types.ObjectId, ref: 'Team' },
     technician_id: { type: Schema.Types.ObjectId, ref: 'User' },

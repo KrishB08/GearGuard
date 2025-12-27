@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function RequestForm() {
     const navigate = useNavigate();
+    const { id } = useParams();
     const [equipmentList, setEquipmentList] = useState([]);
     const [formData, setFormData] = useState({
         subject: '',
@@ -12,14 +13,48 @@ export default function RequestForm() {
         scheduled_date: '',
         description: '',
         priority: 'Medium',
-        team_id: '', // Auto-filled
-        technician_id: '' // Auto-filled
+        team_id: '',
+        technician_id: ''
     });
     const [autoFillInfo, setAutoFillInfo] = useState({ team_name: '', technician_name: '' });
 
     useEffect(() => {
-        api.get('/equipment').then(res => setEquipmentList(res.data));
-    }, []);
+        const fetchDefaults = async () => {
+            try {
+                const res = await api.get('/equipment');
+                const active = res.data.filter(e => e.status !== 'Pending Approval' && !e.is_scrap && e.status !== 'Scrap');
+                setEquipmentList(active);
+
+                if (id) {
+                    const reqRes = await api.get(`/requests/${id}`);
+                    const req = reqRes.data;
+                    setFormData({
+                        subject: req.subject,
+                        equipment_id: req.equipment_id?.id || req.equipment_id,
+                        request_type: req.request_type,
+                        scheduled_date: req.scheduled_date ? req.scheduled_date.split('T')[0] : '',
+                        description: req.description || '',
+                        priority: req.priority,
+                        team_id: req.team_id?.id || req.team_id,
+                        technician_id: req.technician_id?.id || req.technician_id
+                    });
+
+                    // Fetch equipment defaults to show team/tech names
+                    if (req.equipment_id) {
+                        const eqId = req.equipment_id.id || req.equipment_id;
+                        const eqRes = await api.get(`/equipment/${eqId}/defaults`);
+                        setAutoFillInfo({
+                            team_name: eqRes.data.team_name,
+                            technician_name: eqRes.data.technician_name
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load data", err);
+            }
+        };
+        fetchDefaults();
+    }, [id]);
 
     const handleEquipmentChange = async (e) => {
         const eqId = e.target.value;
@@ -46,17 +81,21 @@ export default function RequestForm() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await api.post('/requests', formData);
+            if (id) {
+                await api.put(`/requests/${id}`, formData);
+            } else {
+                await api.post('/requests', formData);
+            }
             navigate('/');
         } catch (err) {
-            alert('Failed to create request');
+            alert('Failed to save request');
             console.error(err);
         }
     };
 
     return (
         <div className="max-w-2xl mx-auto bg-white p-8 rounded shadow">
-            <h2 className="text-2xl font-bold mb-6">Create Maintenance Request</h2>
+            <h2 className="text-2xl font-bold mb-6">{id ? 'Edit Maintenance Request' : 'Create Maintenance Request'}</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Subject</label>
@@ -124,7 +163,7 @@ export default function RequestForm() {
 
                 <div>
                     <button type="submit" className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        Create Request
+                        {id ? 'Update Request' : 'Create Request'}
                     </button>
                 </div>
             </form>

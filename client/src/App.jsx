@@ -1,20 +1,44 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './components/LoginPage';
+import AdminDashboard from './components/AdminDashboard';
+import WorkerDashboard from './components/WorkerDashboard';
+import TechnicianDashboard from './components/TechnicianDashboard';
 import KanbanBoard from './components/KanbanBoard';
 import CalendarView from './components/CalendarView';
 import EquipmentList from './components/EquipmentList';
 import EquipmentDetail from './components/EquipmentDetail';
 import RequestForm from './components/RequestForm';
 import SignupPage from './components/SignupPage';
+<<<<<<< HEAD
 import AdminDashboard from './components/AdminDashboard';
 import WorkerDashboard from './components/WorkerDashboard';
 import TechnicianDashboard from './components/TechnicianDashboard';
+=======
+
+function DashboardRouter() {
+    const { user } = useAuth();
+
+    if (!user) return <Navigate to="/login" replace />;
+
+    // Route to appropriate dashboard based on role
+    if (user.role === 'Admin') {
+        return <AdminDashboard />;
+    } else if (user.role === 'Worker') {
+        return <WorkerDashboard />;
+    } else if (user.role === 'Technician') {
+        return <TechnicianDashboard />;
+    } else {
+        // Default to KanbanBoard for Manager or other roles
+        return <KanbanBoard />;
+    }
+}
+>>>>>>> f340c55 (Improvised the dashboards)
 
 function Layout({ children }) {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
             <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -28,18 +52,25 @@ function Layout({ children }) {
                                 <Link to="/" className="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                                     Dashboard
                                 </Link>
-                                <Link to="/calendar" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                    Calendar
-                                </Link>
-                                <Link to="/equipment" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                    Equipment
-                                </Link>
+                                {(user?.role === 'Admin' || user?.role === 'Worker' || user?.role === 'Manager') && (
+                                    <>
+                                        <Link to="/calendar" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                            Calendar
+                                        </Link>
+                                        <Link to="/equipment" className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                            Equipment
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                            <Link to="/new-request" className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                New Request
-                            </Link>
+                            <span className="text-sm text-gray-500">{user?.name} ({user?.role})</span>
+                            {(user?.role === 'Admin' || user?.role === 'Worker' || user?.role === 'Manager') && (
+                                <Link to="/new-request" className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    New Request
+                                </Link>
+                            )}
                             <button
                                 onClick={logout}
                                 className="text-gray-500 hover:text-gray-700 text-sm font-medium"
@@ -84,11 +115,16 @@ function App() {
                     <Route path="/signup" element={<SignupPage />} />
 
                     <Route element={<ProtectedRoute />}>
+<<<<<<< HEAD
                         <Route path="/" element={<Layout><DashboardResolver /></Layout>} />
+=======
+                        <Route path="/" element={<Layout><DashboardRouter /></Layout>} />
+>>>>>>> f340c55 (Improvised the dashboards)
                         <Route path="/calendar" element={<Layout><CalendarView /></Layout>} />
                         <Route path="/equipment" element={<Layout><EquipmentList /></Layout>} />
                         <Route path="/equipment/:id" element={<Layout><EquipmentDetail /></Layout>} />
-                        <Route path="/new-request" element={<Layout><RequestForm /></Layout>} />
+                        <Route path="/requests/new" element={<Layout><RequestForm /></Layout>} />
+                        <Route path="/requests/edit/:id" element={<Layout><RequestForm /></Layout>} />
                     </Route>
                 </Routes>
             </Router>

@@ -78,15 +78,61 @@ exports.createRequest = async (req, res) => {
     }
 };
 
+exports.acceptRequest = async (req, res) => {
+    const { id } = req.params;
+    const { technician_id } = req.body;
+
+    try {
+        const request = await MaintenanceRequest.findById(id);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        if (request.status !== 'New') {
+            return res.status(400).json({ message: 'Only new requests can be accepted' });
+        }
+
+        // Enforce Team restriction
+        if (request.team_id && req.user.team_id) {
+            if (request.team_id.toString() !== req.user.team_id.toString()) {
+                return res.status(403).json({ message: 'You can only accept requests assigned to your team' });
+            }
+        }
+
+        request.technician_id = technician_id || req.user._id;
+        request.status = 'In Progress';
+        await request.save();
+
+        const populated = await MaintenanceRequest.findById(id)
+            .populate('equipment_id')
+            .populate('team_id')
+            .populate('technician_id');
+
+        const obj = populated.toJSON();
+        obj.Equipment = obj.equipment_id;
+        obj.Team = obj.team_id;
+        obj.Technician = obj.technician_id;
+
+        res.json({ message: 'Request accepted', request: obj });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 exports.updateRequestStage = async (req, res) => {
     const { id } = req.params;
+<<<<<<< HEAD
     const { status, duration, scheduled_date, subject } = req.body;
     const user = req.user;
+=======
+    const { status, duration, notes } = req.body;
+>>>>>>> f340c55 (Improvised the dashboards)
 
     try {
         const request = await MaintenanceRequest.findById(id);
         if (!request) return res.status(404).json({ message: 'Request not found' });
 
+<<<<<<< HEAD
         // RBAC Permission Logic
         if (user.role === 'Admin') {
             // Admin can edit everything
@@ -127,6 +173,25 @@ exports.updateRequestStage = async (req, res) => {
                 // Prevent Technician from arbitrary status changes if needed, but requirements say "move status to Repaired"
                 request.status = status;
             }
+=======
+        // If technician is updating, ensure they are assigned to this request
+        if (req.user.role === 'Technician') {
+            const technicianId = request.technician_id?.toString() || request.technician_id;
+            const userId = req.user._id.toString();
+            if (technicianId !== userId) {
+                return res.status(403).json({ message: 'You can only update requests assigned to you' });
+            }
+        }
+
+        if (status === 'Repaired') {
+            if (duration === undefined || duration === null) {
+                return res.status(400).json({ message: 'Duration is required when marking as Repaired' });
+            }
+            request.duration = duration;
+            if (notes) {
+                request.notes = notes;
+            }
+>>>>>>> f340c55 (Improvised the dashboards)
         }
 
         // Business Logic: Scrap Equipment
@@ -135,7 +200,22 @@ exports.updateRequestStage = async (req, res) => {
         }
 
         await request.save();
+<<<<<<< HEAD
         res.json({ message: 'Request updated', request });
+=======
+
+        const populated = await MaintenanceRequest.findById(id)
+            .populate('equipment_id')
+            .populate('team_id')
+            .populate('technician_id');
+
+        const obj = populated.toJSON();
+        obj.Equipment = obj.equipment_id;
+        obj.Team = obj.team_id;
+        obj.Technician = obj.technician_id;
+
+        res.json({ message: 'Request updated', request: obj });
+>>>>>>> f340c55 (Improvised the dashboards)
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

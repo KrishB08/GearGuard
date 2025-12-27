@@ -18,16 +18,31 @@ const protect = async (req, res, next) => {
             // Get user from the token
             req.user = await User.findById(decoded.id).select('-password');
 
+            if (!req.user) {
+                return res.status(401).json({ message: 'User not found' });
+            }
+
             next();
         } catch (error) {
             console.error(error);
             res.status(401).json({ message: 'Not authorized' });
         }
-    }
-
-    if (!token) {
+    } else {
         res.status(401).json({ message: 'Not authorized, no token' });
     }
 };
 
-module.exports = { protect };
+// Role-based authorization middleware
+const authorize = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+        }
+        next();
+    };
+};
+
+module.exports = { protect, authorize };
