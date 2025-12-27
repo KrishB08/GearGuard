@@ -16,11 +16,7 @@ const userSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },
-<<<<<<< HEAD
-    role: { type: String, enum: ['Admin', 'Manager', 'Worker', 'Technician'], required: true },
-=======
     role: { type: String, enum: ['Admin', 'Worker', 'Technician', 'Manager'], required: true },
->>>>>>> f340c55 (Improvised the dashboards)
     avatar_url: String,
     team_id: { type: Schema.Types.ObjectId, ref: 'Team' }
 }, { timestamps: true, toJSON: toJSONConfig });

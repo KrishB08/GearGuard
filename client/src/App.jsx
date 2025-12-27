@@ -2,7 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './components/LoginPage';
+
+import AuthPage from './components/AuthPage';
 import AdminDashboard from './components/AdminDashboard';
 import WorkerDashboard from './components/WorkerDashboard';
 import TechnicianDashboard from './components/TechnicianDashboard';
@@ -11,12 +12,7 @@ import CalendarView from './components/CalendarView';
 import EquipmentList from './components/EquipmentList';
 import EquipmentDetail from './components/EquipmentDetail';
 import RequestForm from './components/RequestForm';
-import SignupPage from './components/SignupPage';
-<<<<<<< HEAD
-import AdminDashboard from './components/AdminDashboard';
-import WorkerDashboard from './components/WorkerDashboard';
-import TechnicianDashboard from './components/TechnicianDashboard';
-=======
+
 
 function DashboardRouter() {
     const { user } = useAuth();
@@ -35,7 +31,6 @@ function DashboardRouter() {
         return <KanbanBoard />;
     }
 }
->>>>>>> f340c55 (Improvised the dashboards)
 
 function Layout({ children }) {
     const { logout, user } = useAuth();
@@ -67,7 +62,7 @@ function Layout({ children }) {
                         <div className="flex items-center space-x-4">
                             <span className="text-sm text-gray-500">{user?.name} ({user?.role})</span>
                             {(user?.role === 'Admin' || user?.role === 'Worker' || user?.role === 'Manager') && (
-                                <Link to="/new-request" className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                <Link to="/requests/new" className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                     New Request
                                 </Link>
                             )}
@@ -89,37 +84,16 @@ function Layout({ children }) {
     );
 }
 
-
-
-function DashboardResolver() {
-    const { user } = useAuth();
-
-    if (!user) return <div>Loading...</div>;
-
-    if (user.role === 'Admin' || user.role === 'Manager') {
-        return <AdminDashboard />;
-    } else if (user.role === 'Technician') {
-        return <TechnicianDashboard />;
-    } else {
-        // Default to worker for 'Worker' role or others
-        return <WorkerDashboard />;
-    }
-}
-
 function App() {
     return (
         <AuthProvider>
             <Router>
                 <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
+                    <Route path="/login" element={<AuthPage />} />
+                    <Route path="/signup" element={<AuthPage />} />
 
                     <Route element={<ProtectedRoute />}>
-<<<<<<< HEAD
-                        <Route path="/" element={<Layout><DashboardResolver /></Layout>} />
-=======
                         <Route path="/" element={<Layout><DashboardRouter /></Layout>} />
->>>>>>> f340c55 (Improvised the dashboards)
                         <Route path="/calendar" element={<Layout><CalendarView /></Layout>} />
                         <Route path="/equipment" element={<Layout><EquipmentList /></Layout>} />
                         <Route path="/equipment/:id" element={<Layout><EquipmentDetail /></Layout>} />

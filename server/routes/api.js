@@ -7,11 +7,7 @@ const { protect, authorize } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 
 // Auth Routes
-<<<<<<< HEAD
 router.post('/auth/signup', authController.signup);
-=======
-router.post('/auth/register', authController.register);
->>>>>>> f340c55 (Improvised the dashboards)
 router.post('/auth/login', authController.login);
 router.get('/auth/me', protect, authController.getMe);
 
@@ -26,16 +22,11 @@ router.get('/equipment/:id/defaults', equipmentController.getEquipmentDefaults);
 router.get('/equipment/:id/open-requests-count', equipmentController.getOpenRequestCount);
 
 // Request Routes
-<<<<<<< HEAD
 router.get('/requests', protect, requestController.getAllRequests);
-router.post('/requests', protect, requestController.createRequest);
-router.put('/requests/:id/status', protect, requestController.updateRequestStage);
-=======
-router.get('/requests', requestController.getAllRequests);
 router.post('/requests', protect, authorize('Admin', 'Worker', 'Manager'), requestController.createRequest);
 router.put('/requests/:id/accept', protect, authorize('Technician'), requestController.acceptRequest);
 router.put('/requests/:id/status', protect, authorize('Technician', 'Admin', 'Manager'), requestController.updateRequestStage);
->>>>>>> f340c55 (Improvised the dashboards)
+router.delete('/requests/:id', protect, authorize('Admin'), requestController.deleteRequest);
 
 // Simple Team/User Routes for dropdowns
 router.get('/teams', async (req, res) => {

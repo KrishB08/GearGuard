@@ -37,6 +37,7 @@ exports.register = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                team_id: user.team_id,
                 token: generateToken(user.id),
             });
         } else {
@@ -63,6 +64,7 @@ exports.login = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                team_id: user.team_id,
                 token: generateToken(user._id || user.id),
             });
         } else {

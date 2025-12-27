@@ -23,7 +23,7 @@ export default function TechnicianDashboard() {
                 const isTeamMatch = !req.team_id || (user.team_id && (req.team_id.id === user.team_id || req.team_id === user.team_id));
                 const isAssignedToMe = req.technician_id?.id === user._id || req.technician_id === user._id;
 
-                return isTeamMatch && (isAssignedToMe || req.status === 'New');
+                return isAssignedToMe || (isTeamMatch && req.status === 'New');
             });
             setRequests(filtered);
         } catch (err) {

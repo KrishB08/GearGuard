@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-<<<<<<< HEAD
-import api from '../api/axios'; // Import api to fetch teams
+import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { UserPlus, Mail, Lock, User, Briefcase, Users } from 'lucide-react';
 
@@ -9,20 +8,10 @@ export default function SignupPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-=======
-import api from '../api/axios';
-import { useAuth } from '../context/AuthContext';
-
-export default function SignupPage() {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
->>>>>>> f340c55 (Improvised the dashboards)
     const [role, setRole] = useState('Worker');
     const [teamId, setTeamId] = useState('');
     const [teams, setTeams] = useState([]);
     const [error, setError] = useState('');
-<<<<<<< HEAD
     const { signup } = useAuth();
     const navigate = useNavigate();
 
@@ -30,24 +19,10 @@ export default function SignupPage() {
         // Fetch teams for the dropdown
         api.get('/teams').then(res => setTeams(res.data)).catch(console.error);
     }, []);
-=======
-    const navigate = useNavigate();
-    const { login } = useAuth();
-
-    // Only fetch teams if role is Technician
-    useEffect(() => {
-        if (role === 'Technician') {
-            api.get('/teams')
-                .then(res => setTeams(res.data))
-                .catch(err => console.error("Failed to fetch teams", err));
-        }
-    }, [role]);
->>>>>>> f340c55 (Improvised the dashboards)
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-<<<<<<< HEAD
 
         // Pass teamId only if role is Technician
         const result = await signup(name, email, password, role, role === 'Technician' ? teamId : undefined);
@@ -56,36 +31,10 @@ export default function SignupPage() {
             navigate('/');
         } else {
             setError(result.message);
-=======
-        try {
-            const payload = { name, email, password, role };
-            if (role === 'Technician' && teamId) {
-                payload.team_id = teamId;
-            }
-
-            // We use the same 'login' context function because register returns the same token structure usually,
-            // but looking at AuthProvider, it might hit /login. 
-            // Better to hit API validly and then use login or just auto-login.
-            // Let's manually hit api first.
-
-            const res = await api.post('/auth/register', payload);
-            if (res.data.token) {
-                // If AuthContext exposes a way to set user, use it. 
-                // Currently assume login() does api call. 
-                // So we can just redirect to login or auto-login.
-                // Let's redirect to login for simplicity or try to auto-login if logic permits.
-                // Actually, let's just alert and go to login.
-                alert('Registration successful! Please login.');
-                navigate('/login');
-            }
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to register');
->>>>>>> f340c55 (Improvised the dashboards)
         }
     };
 
     return (
-<<<<<<< HEAD
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="flex justify-center">
@@ -172,6 +121,8 @@ export default function SignupPage() {
                                 >
                                     <option value="Worker">Worker</option>
                                     <option value="Technician">Technician</option>
+                                    <option value="Manager">Manager</option>
+                                    <option value="Admin">Admin</option>
                                 </select>
                             </div>
                         </div>
@@ -195,7 +146,7 @@ export default function SignupPage() {
                                     >
                                         <option value="">Select a Department</option>
                                         {teams.map(team => (
-                                            <option key={team._id} value={team._id}>{team.name}</option>
+                                            <option key={team._id || team.id} value={team._id || team.id}>{team.name}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -234,98 +185,6 @@ export default function SignupPage() {
                         </div>
                     </form>
                 </div>
-=======
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded shadow">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create an account
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-gray-600">
-                        Or <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">sign in to your existing account</Link>
-                    </p>
-                </div>
-                {error && <div className="text-red-500 text-sm text-center">{error}</div>}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                            <input
-                                name="name"
-                                type="text"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Full Name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Email address</label>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Password</label>
-                            <input
-                                name="password"
-                                type="password"
-                                required
-                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Role</label>
-                            <select
-                                value={role}
-                                onChange={(e) => setRole(e.target.value)}
-                                className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            >
-                                <option value="Worker">Worker</option>
-                                <option value="Technician">Technician</option>
-                                <option value="Manager">Manager</option>
-                                <option value="Admin">Admin</option>
-                            </select>
-                        </div>
-
-                        {role === 'Technician' && (
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700">Team</label>
-                                <select
-                                    value={teamId}
-                                    onChange={(e) => setTeamId(e.target.value)}
-                                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                    required
-                                >
-                                    <option value="">Select Team</option>
-                                    {teams.map(t => (
-                                        <option key={t.id} value={t.id}>{t.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <button
-                            type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Sign Up
-                        </button>
-                    </div>
-                </form>
->>>>>>> f340c55 (Improvised the dashboards)
             </div>
         </div>
     );

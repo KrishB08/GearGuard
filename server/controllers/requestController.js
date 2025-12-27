@@ -19,7 +19,10 @@ exports.getAllRequests = async (req, res) => {
             query.created_by = req.user.id;
         } else if (req.user.role === 'Technician') {
             // Can see assigned to self OR unassigned in their team queue (optional, but requested 'assigned to userId')
-            query.technician_id = req.user.id;
+            query.$or = [
+                { technician_id: req.user.id },
+                { technician_id: null, team_id: req.user.team_id }
+            ];
         }
         // Admin stays as {} (all)
 
@@ -93,9 +96,17 @@ exports.acceptRequest = async (req, res) => {
         }
 
         // Enforce Team restriction
-        if (request.team_id && req.user.team_id) {
-            if (request.team_id.toString() !== req.user.team_id.toString()) {
-                return res.status(403).json({ message: 'You can only accept requests assigned to your team' });
+        // Allow if explicitly assigned to this technician
+        const isAssignedToUser = request.technician_id &&
+            (request.technician_id.toString() === req.user._id.toString() ||
+                request.technician_id._id?.toString() === req.user._id.toString());
+
+        if (!isAssignedToUser) {
+            // Enforce Team restriction for picking up unassigned requests
+            if (request.team_id && req.user.team_id) {
+                if (request.team_id.toString() !== req.user.team_id.toString()) {
+                    return res.status(403).json({ message: 'You can only accept requests assigned to your team' });
+                }
             }
         }
 
@@ -121,18 +132,13 @@ exports.acceptRequest = async (req, res) => {
 
 exports.updateRequestStage = async (req, res) => {
     const { id } = req.params;
-<<<<<<< HEAD
-    const { status, duration, scheduled_date, subject } = req.body;
+    const { status, duration, scheduled_date, subject, notes } = req.body;
     const user = req.user;
-=======
-    const { status, duration, notes } = req.body;
->>>>>>> f340c55 (Improvised the dashboards)
 
     try {
         const request = await MaintenanceRequest.findById(id);
         if (!request) return res.status(404).json({ message: 'Request not found' });
 
-<<<<<<< HEAD
         // RBAC Permission Logic
         if (user.role === 'Admin') {
             // Admin can edit everything
@@ -140,6 +146,7 @@ exports.updateRequestStage = async (req, res) => {
             if (duration) request.duration = duration;
             if (scheduled_date) request.scheduled_date = scheduled_date;
             if (subject) request.subject = subject;
+            if (notes) request.notes = notes;
         }
         else if (user.role === 'Worker') {
             // Worker: Edit ONLY own requests && ONLY if status is New
@@ -151,8 +158,6 @@ exports.updateRequestStage = async (req, res) => {
             }
             // Allowed fields for Worker
             if (subject) request.subject = subject;
-            // Worker can't change status directly typically, or maybe cancel? 
-            // Assuming simplified requirement: "Edit requests they created"
         }
         else if (user.role === 'Technician') {
             // Technician: Edit ONLY assigned requests
@@ -161,37 +166,18 @@ exports.updateRequestStage = async (req, res) => {
             }
 
             // Allowed updates for Technician
-            if (subject) request.subject = subject; // "Update Subject"
-            if (scheduled_date) request.scheduled_date = scheduled_date; // "Update Scheduled Date"
-            if (duration) request.duration = duration; // "Update Duration"
+            if (subject) request.subject = subject;
+            if (scheduled_date) request.scheduled_date = scheduled_date;
+            if (duration) request.duration = duration;
+            if (notes) request.notes = notes;
 
             // Status transitions: Technician moves to Repaired
             if (status) {
                 if (status === 'Repaired' && !duration && !request.duration) {
                     return res.status(400).json({ message: 'Duration is required when marking as Repaired' });
                 }
-                // Prevent Technician from arbitrary status changes if needed, but requirements say "move status to Repaired"
                 request.status = status;
             }
-=======
-        // If technician is updating, ensure they are assigned to this request
-        if (req.user.role === 'Technician') {
-            const technicianId = request.technician_id?.toString() || request.technician_id;
-            const userId = req.user._id.toString();
-            if (technicianId !== userId) {
-                return res.status(403).json({ message: 'You can only update requests assigned to you' });
-            }
-        }
-
-        if (status === 'Repaired') {
-            if (duration === undefined || duration === null) {
-                return res.status(400).json({ message: 'Duration is required when marking as Repaired' });
-            }
-            request.duration = duration;
-            if (notes) {
-                request.notes = notes;
-            }
->>>>>>> f340c55 (Improvised the dashboards)
         }
 
         // Business Logic: Scrap Equipment
@@ -200,9 +186,6 @@ exports.updateRequestStage = async (req, res) => {
         }
 
         await request.save();
-<<<<<<< HEAD
-        res.json({ message: 'Request updated', request });
-=======
 
         const populated = await MaintenanceRequest.findById(id)
             .populate('equipment_id')
@@ -215,7 +198,22 @@ exports.updateRequestStage = async (req, res) => {
         obj.Technician = obj.technician_id;
 
         res.json({ message: 'Request updated', request: obj });
->>>>>>> f340c55 (Improvised the dashboards)
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.deleteRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const request = await MaintenanceRequest.findById(id);
+
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        await MaintenanceRequest.findByIdAndDelete(id);
+        res.json({ message: 'Request deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
