@@ -7,6 +7,7 @@ const { protect } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 
 // Auth Routes
+router.post('/auth/signup', authController.signup);
 router.post('/auth/login', authController.login);
 router.get('/auth/me', protect, authController.getMe);
 
@@ -19,7 +20,7 @@ router.get('/equipment/:id/defaults', equipmentController.getEquipmentDefaults);
 router.get('/equipment/:id/open-requests-count', equipmentController.getOpenRequestCount);
 
 // Request Routes
-router.get('/requests', requestController.getAllRequests);
+router.get('/requests', protect, requestController.getAllRequests);
 router.post('/requests', protect, requestController.createRequest);
 router.put('/requests/:id/status', protect, requestController.updateRequestStage);
 

@@ -16,7 +16,7 @@ const userSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },
-    role: { type: String, enum: ['Manager', 'Technician'], required: true },
+    role: { type: String, enum: ['Admin', 'Manager', 'Worker', 'Technician'], required: true },
     avatar_url: String,
     team_id: { type: Schema.Types.ObjectId, ref: 'Team' }
 }, { timestamps: true, toJSON: toJSONConfig });
@@ -43,7 +43,8 @@ const maintenanceRequestSchema = new Schema({
     status: { type: String, enum: ['New', 'In Progress', 'Repaired', 'Scrap'], default: 'New' },
     equipment_id: { type: Schema.Types.ObjectId, ref: 'Equipment' },
     team_id: { type: Schema.Types.ObjectId, ref: 'Team' },
-    technician_id: { type: Schema.Types.ObjectId, ref: 'User' }
+    technician_id: { type: Schema.Types.ObjectId, ref: 'User' },
+    created_by: { type: Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true, toJSON: toJSONConfig });
 
 const Team = mongoose.model('Team', teamSchema);

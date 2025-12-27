@@ -8,6 +8,10 @@ import CalendarView from './components/CalendarView';
 import EquipmentList from './components/EquipmentList';
 import EquipmentDetail from './components/EquipmentDetail';
 import RequestForm from './components/RequestForm';
+import SignupPage from './components/SignupPage';
+import AdminDashboard from './components/AdminDashboard';
+import WorkerDashboard from './components/WorkerDashboard';
+import TechnicianDashboard from './components/TechnicianDashboard';
 
 function Layout({ children }) {
     const { logout } = useAuth();
@@ -54,15 +58,33 @@ function Layout({ children }) {
     );
 }
 
+
+
+function DashboardResolver() {
+    const { user } = useAuth();
+
+    if (!user) return <div>Loading...</div>;
+
+    if (user.role === 'Admin' || user.role === 'Manager') {
+        return <AdminDashboard />;
+    } else if (user.role === 'Technician') {
+        return <TechnicianDashboard />;
+    } else {
+        // Default to worker for 'Worker' role or others
+        return <WorkerDashboard />;
+    }
+}
+
 function App() {
     return (
         <AuthProvider>
             <Router>
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
 
                     <Route element={<ProtectedRoute />}>
-                        <Route path="/" element={<Layout><KanbanBoard /></Layout>} />
+                        <Route path="/" element={<Layout><DashboardResolver /></Layout>} />
                         <Route path="/calendar" element={<Layout><CalendarView /></Layout>} />
                         <Route path="/equipment" element={<Layout><EquipmentList /></Layout>} />
                         <Route path="/equipment/:id" element={<Layout><EquipmentDetail /></Layout>} />
